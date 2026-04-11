@@ -1,0 +1,8 @@
+E:\Data structure\Tiny\Tiny\obj\Debug\Tiny.csproj.AssemblyReference.cache
+E:\Data structure\Tiny\Tiny\obj\Debug\Tiny.csproj.CoreCompileInputs.cache
+E:\Data structure\Tiny\Tiny\bin\Debug\Tiny.exe.config
+E:\Data structure\Tiny\Tiny\bin\Debug\Tiny.exe
+E:\Data structure\Tiny\Tiny\bin\Debug\Tiny.pdb
+E:\Data structure\Tiny\Tiny\obj\Debug\Tiny.exe
+E:\Data structure\Tiny\Tiny\obj\Debug\Tiny.pdb
+E:\Data structure\Tiny\Tiny\obj\Debug\Tiny.exe.config
