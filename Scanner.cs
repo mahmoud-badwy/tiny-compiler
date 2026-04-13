@@ -136,7 +136,7 @@ namespace Tiny
                     continue;
                 }
 
-                // ================= NUMBER =================
+                // NUMBER 
                 if (char.IsDigit(c))
                 {
                     int j = i;
