@@ -1,11 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Tiny
@@ -13,6 +9,7 @@ namespace Tiny
     public partial class Form1 : Form
     {
         private readonly Scanner scanner = new Scanner();
+        private readonly Dictionary<TabPage, TextBox> tabEditors = new Dictionary<TabPage, TextBox>();
         private int nextTabNumber = 1;
 
         public Form1()
@@ -28,12 +25,7 @@ namespace Tiny
             AddNewTab();
         }
 
-        private void textBox1_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void button1_Click(object sender, EventArgs e)
+        private void buttonRunTab_Click(object sender, EventArgs e)
         {
             CompileActiveTab();
         }
@@ -57,8 +49,18 @@ namespace Tiny
             AddNewTab();
         }
 
+        private void tabControlSources_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ShowActiveEditor();
+        }
+
         private void tabControlSources_DrawItem(object sender, DrawItemEventArgs e)
         {
+            if (e.Index < 0 || e.Index >= tabControlSources.TabPages.Count)
+            {
+                return;
+            }
+
             var tabPage = tabControlSources.TabPages[e.Index];
             var tabBounds = tabControlSources.GetTabRect(e.Index);
             var background = e.Index == tabControlSources.SelectedIndex ? Color.White : Color.FromArgb(232, 237, 243);
@@ -66,18 +68,28 @@ namespace Tiny
 
             using (var backgroundBrush = new SolidBrush(background))
             using (var borderPen = new Pen(border))
-            using (var textBrush = new SolidBrush(Color.FromArgb(33, 37, 41)))
-            using (var closeBrush = new SolidBrush(Color.FromArgb(120, 128, 138)))
             using (var closeFont = new Font("Segoe UI", 8F, FontStyle.Bold))
             {
                 e.Graphics.FillRectangle(backgroundBrush, tabBounds);
                 e.Graphics.DrawRectangle(borderPen, tabBounds);
 
-                var textRect = new Rectangle(tabBounds.X + 12, tabBounds.Y + 8, tabBounds.Width - 30, tabBounds.Height - 14);
-                TextRenderer.DrawText(e.Graphics, tabPage.Text, tabPage.Font ?? Font, textRect, Color.FromArgb(33, 37, 41), TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+                var textRect = new Rectangle(tabBounds.X + 10, tabBounds.Y + 7, tabBounds.Width - 24, tabBounds.Height - 10);
+                TextRenderer.DrawText(
+                    e.Graphics,
+                    tabPage.Text,
+                    tabPage.Font ?? Font,
+                    textRect,
+                    Color.FromArgb(33, 37, 41),
+                    TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
 
                 var closeRect = GetCloseButtonBounds(tabBounds);
-                TextRenderer.DrawText(e.Graphics, "x", closeFont, closeRect, Color.FromArgb(120, 128, 138), TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                TextRenderer.DrawText(
+                    e.Graphics,
+                    "x",
+                    closeFont,
+                    closeRect,
+                    Color.FromArgb(120, 128, 138),
+                    TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
             }
         }
 
@@ -92,15 +104,6 @@ namespace Tiny
                 {
                     CloseTab(tabControlSources.TabPages[index]);
                     return;
-                }
-            }
-
-            for (var index = 0; index < tabControlSources.TabCount; index++)
-            {
-                if (tabControlSources.GetTabRect(index).Contains(e.Location))
-                {
-                    tabControlSources.SelectedIndex = index;
-                    break;
                 }
             }
         }
@@ -147,7 +150,6 @@ namespace Tiny
         private void AddNewTab()
         {
             var tabPage = new TabPage($"Source {nextTabNumber++}");
-            tabPage.BackColor = Color.White;
 
             var editor = new TextBox
             {
@@ -161,12 +163,25 @@ namespace Tiny
                 WordWrap = false
             };
 
-            editor.TextChanged += textBox1_TextChanged;
-            tabPage.Controls.Add(editor);
+            tabEditors[tabPage] = editor;
             tabControlSources.TabPages.Add(tabPage);
             tabControlSources.SelectedTab = tabPage;
-            editor.Focus();
+            ShowActiveEditor();
             statusLabel.Text = $"Opened {tabPage.Text}.";
+            editor.Focus();
+        }
+
+        private void ShowActiveEditor()
+        {
+            panelEditorHost.Controls.Clear();
+            var activeEditor = GetActiveEditor();
+            if (activeEditor == null)
+            {
+                return;
+            }
+
+            panelEditorHost.Controls.Add(activeEditor);
+            activeEditor.Focus();
         }
 
         private void CloseTab(TabPage tabPage)
@@ -177,26 +192,34 @@ namespace Tiny
                 return;
             }
 
-            var isSelected = tabControlSources.SelectedTab == tabPage;
+            if (tabEditors.TryGetValue(tabPage, out var editor))
+            {
+                tabEditors.Remove(tabPage);
+                editor.Dispose();
+            }
+
+            var wasSelected = tabControlSources.SelectedTab == tabPage;
             tabControlSources.TabPages.Remove(tabPage);
             tabPage.Dispose();
 
-            if (isSelected && tabControlSources.TabCount > 0)
+            if (wasSelected && tabControlSources.TabCount > 0)
             {
                 tabControlSources.SelectedIndex = 0;
             }
 
+            ShowActiveEditor();
             statusLabel.Text = "Tab closed.";
         }
 
         private TextBox GetActiveEditor()
         {
-            if (tabControlSources.SelectedTab == null)
+            var activeTab = tabControlSources.SelectedTab;
+            if (activeTab == null)
             {
                 return null;
             }
 
-            return tabControlSources.SelectedTab.Controls.OfType<TextBox>().FirstOrDefault();
+            return tabEditors.TryGetValue(activeTab, out var editor) ? editor : null;
         }
 
         private string GetActiveTabTitle()
@@ -206,7 +229,7 @@ namespace Tiny
 
         private Rectangle GetCloseButtonBounds(Rectangle tabBounds)
         {
-            return new Rectangle(tabBounds.Right - 22, tabBounds.Top + 10, 12, 12);
+            return new Rectangle(tabBounds.Right - 18, tabBounds.Top + 9, 12, 12);
         }
     }
 }

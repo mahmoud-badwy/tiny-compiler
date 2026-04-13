@@ -1,4 +1,4 @@
-﻿namespace Tiny
+namespace Tiny
 {
     partial class Form1
     {
@@ -36,10 +36,11 @@
             this.labelTitle = new System.Windows.Forms.Label();
             this.tableLayoutPanelMain = new System.Windows.Forms.TableLayoutPanel();
             this.panelEditor = new System.Windows.Forms.Panel();
-            this.panelEditorToolbar = new System.Windows.Forms.Panel();
-            this.buttonAddTab = new System.Windows.Forms.Button();
-            this.labelEditor = new System.Windows.Forms.Label();
+            this.panelEditorHost = new System.Windows.Forms.Panel();
+            this.panelTabBar = new System.Windows.Forms.Panel();
             this.tabControlSources = new System.Windows.Forms.TabControl();
+            this.buttonAddTab = new System.Windows.Forms.Button();
+            this.buttonRunTab = new System.Windows.Forms.Button();
             this.panelOutput = new System.Windows.Forms.Panel();
             this.tableLayoutPanelOutput = new System.Windows.Forms.TableLayoutPanel();
             this.panelTokens = new System.Windows.Forms.Panel();
@@ -53,11 +54,10 @@
             this.panelActions = new System.Windows.Forms.Panel();
             this.statusLabel = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
             this.panelHeader.SuspendLayout();
             this.tableLayoutPanelMain.SuspendLayout();
             this.panelEditor.SuspendLayout();
-            this.panelEditorToolbar.SuspendLayout();
+            this.panelTabBar.SuspendLayout();
             this.panelOutput.SuspendLayout();
             this.tableLayoutPanelOutput.SuspendLayout();
             this.panelTokens.SuspendLayout();
@@ -78,17 +78,6 @@
             this.panelHeader.Size = new System.Drawing.Size(1360, 84);
             this.panelHeader.TabIndex = 0;
             // 
-            // labelTitle
-            // 
-            this.labelTitle.AutoSize = true;
-            this.labelTitle.Font = new System.Drawing.Font("Segoe UI Semibold", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelTitle.ForeColor = System.Drawing.Color.White;
-            this.labelTitle.Location = new System.Drawing.Point(24, 14);
-            this.labelTitle.Name = "labelTitle";
-            this.labelTitle.Size = new System.Drawing.Size(171, 41);
-            this.labelTitle.TabIndex = 0;
-            this.labelTitle.Text = "Tiny Compiler";
-            // 
             // labelSubtitle
             // 
             this.labelSubtitle.AutoSize = true;
@@ -100,11 +89,22 @@
             this.labelSubtitle.TabIndex = 1;
             this.labelSubtitle.Text = "Scan code, inspect tokens, and review errors.";
             // 
+            // labelTitle
+            // 
+            this.labelTitle.AutoSize = true;
+            this.labelTitle.Font = new System.Drawing.Font("Segoe UI Semibold", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelTitle.ForeColor = System.Drawing.Color.White;
+            this.labelTitle.Location = new System.Drawing.Point(24, 14);
+            this.labelTitle.Name = "labelTitle";
+            this.labelTitle.Size = new System.Drawing.Size(171, 41);
+            this.labelTitle.TabIndex = 0;
+            this.labelTitle.Text = "Tiny Compiler";
+            // 
             // tableLayoutPanelMain
             // 
             this.tableLayoutPanelMain.ColumnCount = 2;
-            this.tableLayoutPanelMain.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 49F));
-            this.tableLayoutPanelMain.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 51F));
+            this.tableLayoutPanelMain.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 60F));
+            this.tableLayoutPanelMain.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 40F));
             this.tableLayoutPanelMain.Controls.Add(this.panelEditor, 0, 0);
             this.tableLayoutPanelMain.Controls.Add(this.panelOutput, 1, 0);
             this.tableLayoutPanelMain.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -119,9 +119,8 @@
             // panelEditor
             // 
             this.panelEditor.BackColor = System.Drawing.Color.White;
-            this.panelEditor.Controls.Add(this.tabControlSources);
-            this.panelEditor.Controls.Add(this.panelEditorToolbar);
-            this.panelEditor.Controls.Add(this.labelEditor);
+            this.panelEditor.Controls.Add(this.panelEditorHost);
+            this.panelEditor.Controls.Add(this.panelTabBar);
             this.panelEditor.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelEditor.Location = new System.Drawing.Point(19, 19);
             this.panelEditor.Margin = new System.Windows.Forms.Padding(3, 3, 12, 3);
@@ -130,59 +129,73 @@
             this.panelEditor.Size = new System.Drawing.Size(645, 534);
             this.panelEditor.TabIndex = 0;
             // 
-            // panelEditorToolbar
+            // panelEditorHost
             // 
-            this.panelEditorToolbar.BackColor = System.Drawing.Color.Transparent;
-            this.panelEditorToolbar.Controls.Add(this.buttonAddTab);
-            this.panelEditorToolbar.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panelEditorToolbar.Location = new System.Drawing.Point(16, 16);
-            this.panelEditorToolbar.Name = "panelEditorToolbar";
-            this.panelEditorToolbar.Size = new System.Drawing.Size(613, 36);
-            this.panelEditorToolbar.TabIndex = 0;
+            this.panelEditorHost.BackColor = System.Drawing.Color.White;
+            this.panelEditorHost.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panelEditorHost.Location = new System.Drawing.Point(16, 56);
+            this.panelEditorHost.Name = "panelEditorHost";
+            this.panelEditorHost.Size = new System.Drawing.Size(613, 462);
+            this.panelEditorHost.TabIndex = 1;
+            // 
+            // panelTabBar
+            // 
+            this.panelTabBar.BackColor = System.Drawing.Color.Transparent;
+            this.panelTabBar.Controls.Add(this.tabControlSources);
+            this.panelTabBar.Controls.Add(this.buttonAddTab);
+            this.panelTabBar.Controls.Add(this.buttonRunTab);
+            this.panelTabBar.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panelTabBar.Location = new System.Drawing.Point(16, 16);
+            this.panelTabBar.Name = "panelTabBar";
+            this.panelTabBar.Size = new System.Drawing.Size(613, 40);
+            this.panelTabBar.TabIndex = 0;
+            // 
+            // tabControlSources
+            // 
+            this.tabControlSources.Alignment = System.Windows.Forms.TabAlignment.Top;
+            this.tabControlSources.DrawMode = System.Windows.Forms.TabDrawMode.OwnerDrawFixed;
+            this.tabControlSources.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tabControlSources.ItemSize = new System.Drawing.Size(150, 30);
+            this.tabControlSources.Location = new System.Drawing.Point(36, 2);
+            this.tabControlSources.Name = "tabControlSources";
+            this.tabControlSources.Padding = new System.Drawing.Point(14, 5);
+            this.tabControlSources.SelectedIndex = 0;
+            this.tabControlSources.Size = new System.Drawing.Size(541, 36);
+            this.tabControlSources.TabIndex = 1;
+            this.tabControlSources.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.tabControlSources_DrawItem);
+            this.tabControlSources.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tabControlSources_MouseDown);
+            this.tabControlSources.SelectedIndexChanged += new System.EventHandler(this.tabControlSources_SelectedIndexChanged);
             // 
             // buttonAddTab
             // 
             this.buttonAddTab.BackColor = System.Drawing.Color.FromArgb(245, 248, 252);
             this.buttonAddTab.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(210, 220, 230);
             this.buttonAddTab.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.buttonAddTab.Font = new System.Drawing.Font("Segoe UI Semibold", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.buttonAddTab.Font = new System.Drawing.Font("Segoe UI Symbol", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.buttonAddTab.ForeColor = System.Drawing.Color.FromArgb(34, 120, 205);
-            this.buttonAddTab.Location = new System.Drawing.Point(0, 0);
+            this.buttonAddTab.Location = new System.Drawing.Point(0, 4);
             this.buttonAddTab.Name = "buttonAddTab";
-            this.buttonAddTab.Size = new System.Drawing.Size(104, 32);
+            this.buttonAddTab.Size = new System.Drawing.Size(32, 30);
             this.buttonAddTab.TabIndex = 0;
-            this.buttonAddTab.Text = "+ Add Tab";
+            this.buttonAddTab.Text = "+";
             this.buttonAddTab.UseVisualStyleBackColor = false;
             this.buttonAddTab.Click += new System.EventHandler(this.buttonAddTab_Click);
             // 
-            // labelEditor
+            // buttonRunTab
             // 
-            this.labelEditor.AutoSize = true;
-            this.labelEditor.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelEditor.ForeColor = System.Drawing.Color.FromArgb(33, 37, 41);
-            this.labelEditor.Location = new System.Drawing.Point(16, 56);
-            this.labelEditor.Name = "labelEditor";
-            this.labelEditor.Size = new System.Drawing.Size(105, 23);
-            this.labelEditor.TabIndex = 0;
-            this.labelEditor.Text = "Source Code";
-            // 
-            // tabControlSources
-            // 
-            this.tabControlSources.Alignment = System.Windows.Forms.TabAlignment.Top;
-            this.tabControlSources.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.tabControlSources.DrawMode = System.Windows.Forms.TabDrawMode.OwnerDrawFixed;
-            this.tabControlSources.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tabControlSources.ItemSize = new System.Drawing.Size(160, 34);
-            this.tabControlSources.Location = new System.Drawing.Point(19, 85);
-            this.tabControlSources.Name = "tabControlSources";
-            this.tabControlSources.Padding = new System.Drawing.Point(18, 7);
-            this.tabControlSources.SelectedIndex = 0;
-            this.tabControlSources.Size = new System.Drawing.Size(607, 433);
-            this.tabControlSources.TabIndex = 1;
-            this.tabControlSources.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.tabControlSources_DrawItem);
-            this.tabControlSources.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tabControlSources_MouseDown);
+            this.buttonRunTab.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonRunTab.BackColor = System.Drawing.Color.FromArgb(32, 168, 76);
+            this.buttonRunTab.FlatAppearance.BorderSize = 0;
+            this.buttonRunTab.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.buttonRunTab.Font = new System.Drawing.Font("Segoe UI Symbol", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.buttonRunTab.ForeColor = System.Drawing.Color.White;
+            this.buttonRunTab.Location = new System.Drawing.Point(581, 4);
+            this.buttonRunTab.Name = "buttonRunTab";
+            this.buttonRunTab.Size = new System.Drawing.Size(32, 30);
+            this.buttonRunTab.TabIndex = 2;
+            this.buttonRunTab.Text = "▶";
+            this.buttonRunTab.UseVisualStyleBackColor = false;
+            this.buttonRunTab.Click += new System.EventHandler(this.buttonRunTab_Click);
             // 
             // panelOutput
             // 
@@ -333,7 +346,6 @@
             // 
             this.panelActions.BackColor = System.Drawing.Color.Transparent;
             this.panelActions.Controls.Add(this.button2);
-            this.panelActions.Controls.Add(this.button1);
             this.panelActions.Controls.Add(this.statusLabel);
             this.panelActions.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panelActions.Location = new System.Drawing.Point(3, 461);
@@ -353,22 +365,6 @@
             this.statusLabel.TabIndex = 0;
             this.statusLabel.Text = "Ready to scan the input text.";
             // 
-            // button1
-            // 
-            this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.button1.BackColor = System.Drawing.Color.FromArgb(32, 168, 76);
-            this.button1.FlatAppearance.BorderSize = 0;
-            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button1.Font = new System.Drawing.Font("Segoe UI Semibold", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.ForeColor = System.Drawing.Color.White;
-            this.button1.Location = new System.Drawing.Point(361, 8);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(126, 44);
-            this.button1.TabIndex = 1;
-            this.button1.Text = "\u25b6 Run";
-            this.button1.UseVisualStyleBackColor = false;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
             // button2
             // 
             this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -380,7 +376,7 @@
             this.button2.Location = new System.Drawing.Point(493, 8);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(126, 44);
-            this.button2.TabIndex = 2;
+            this.button2.TabIndex = 1;
             this.button2.Text = "Clear";
             this.button2.UseVisualStyleBackColor = false;
             this.button2.Click += new System.EventHandler(this.button2_Click);
@@ -402,8 +398,7 @@
             this.panelHeader.PerformLayout();
             this.tableLayoutPanelMain.ResumeLayout(false);
             this.panelEditor.ResumeLayout(false);
-            this.panelEditor.PerformLayout();
-            this.panelEditorToolbar.ResumeLayout(false);
+            this.panelTabBar.ResumeLayout(false);
             this.panelOutput.ResumeLayout(false);
             this.tableLayoutPanelOutput.ResumeLayout(false);
             this.panelTokens.ResumeLayout(false);
@@ -414,6 +409,7 @@
             this.panelActions.ResumeLayout(false);
             this.panelActions.PerformLayout();
             this.ResumeLayout(false);
+
         }
 
         #endregion
@@ -423,10 +419,11 @@
         private System.Windows.Forms.Label labelTitle;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelMain;
         private System.Windows.Forms.Panel panelEditor;
-        private System.Windows.Forms.Panel panelEditorToolbar;
-        private System.Windows.Forms.Button buttonAddTab;
-        private System.Windows.Forms.Label labelEditor;
+        private System.Windows.Forms.Panel panelEditorHost;
+        private System.Windows.Forms.Panel panelTabBar;
         private System.Windows.Forms.TabControl tabControlSources;
+        private System.Windows.Forms.Button buttonAddTab;
+        private System.Windows.Forms.Button buttonRunTab;
         private System.Windows.Forms.Panel panelOutput;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanelOutput;
         private System.Windows.Forms.Panel panelTokens;
@@ -440,6 +437,5 @@
         private System.Windows.Forms.Panel panelActions;
         private System.Windows.Forms.Label statusLabel;
         private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.Button button1;
     }
 }
