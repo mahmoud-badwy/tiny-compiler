@@ -97,7 +97,7 @@ namespace Tiny
                         j++;
                     }
 
-                    if (j >= code.Length)
+                    if (j >= code.Length) // no closing quote
                     {
                         Errors.Error_List.Add("Unclosed string");
                         return;
@@ -243,3 +243,5 @@ namespace Tiny
         }
     }
 }
+
+// approved by omar

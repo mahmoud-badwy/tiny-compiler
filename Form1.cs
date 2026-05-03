@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using Tiny_Compiler;
 
 namespace Tiny
 {
     public partial class Form1 : Form
     {
         private readonly Scanner scanner = new Scanner();
+        private readonly Parser parser = new Parser();  // ADDED: Parser instance
         private readonly Dictionary<TabPage, TextBox> tabEditors = new Dictionary<TabPage, TextBox>();
         private int nextTabNumber = 1;
 
@@ -120,6 +122,7 @@ namespace Tiny
             CompileSource(activeEditor.Text, GetActiveTabTitle());
         }
 
+        // UPDATED: Now includes parsing phase
         private void CompileSource(string sourceCode, string tabName)
         {
             dataGridView1.Rows.Clear();
@@ -127,24 +130,121 @@ namespace Tiny
             Errors.Error_List.Clear();
             scanner.Tokens.Clear();
 
+            // PHASE 1: SCANNING (Lexical Analysis)
             scanner.StartScanning(sourceCode);
 
+            // Display tokens
             foreach (var token in scanner.Tokens)
             {
                 dataGridView1.Rows.Add(token.lex, token.token_type.ToString());
             }
 
-            foreach (var error in Errors.Error_List)
+            // Check for scanning errors
+            if (Errors.Error_List.Count > 0)
             {
-                textBox2.AppendText(error + "\r\n");
+                foreach (var error in Errors.Error_List)
+                {
+                    textBox2.AppendText(error + "\r\n");
+                }
+                statusLabel.Text = $"{tabName}: {scanner.Tokens.Count} token(s), {Errors.Error_List.Count} error(s).";
+                return; // Don't proceed to parsing if scanning failed
             }
 
-            if (Errors.Error_List.Count == 0)
+            // PHASE 2: PARSING (Syntax Analysis)
+            try
             {
-                textBox2.Text = "No Errors";
+                Node parseTree = parser.StartParsing(scanner.Tokens);
+
+                // Check for parsing errors
+                if (Errors.Error_List.Count > 0)
+                {
+                    textBox2.Text = "Parsing Errors:\r\n";
+                    foreach (var error in Errors.Error_List)
+                    {
+                        textBox2.AppendText(error + "\r\n");
+                    }
+                    statusLabel.Text = $"{tabName}: Parsing failed with {Errors.Error_List.Count} error(s).";
+                }
+                else
+                {
+                    textBox2.Text = "Compilation Successful!\r\n";
+                    textBox2.AppendText($"Tokens: {scanner.Tokens.Count}\r\n");
+                    textBox2.AppendText("No errors found.\r\n");
+                    textBox2.AppendText("\r\nParse tree generated successfully.");
+                    statusLabel.Text = $"{tabName}: Compilation successful!";
+                }
+
+                // Display parse tree in a message box (since we don't have TreeView in current GUI)
+                ShowParseTree(parseTree);
+            }
+            catch (Exception ex)
+            {
+                textBox2.AppendText($"\r\nParser Error: {ex.Message}");
+                statusLabel.Text = $"{tabName}: Parser crashed.";
+            }
+        }
+
+        // ADDED: Show parse tree in a separate form
+        private void ShowParseTree(Node parseTree)
+        {
+            if (parseTree == null)
+                return;
+
+            // Create a new form to display the parse tree
+            Form treeForm = new Form
+            {
+                Text = "Parse Tree",
+                Size = new Size(600, 700),
+                StartPosition = FormStartPosition.CenterParent,
+                BackColor = Color.White,
+                Font = new Font("Segoe UI", 9F)
+            };
+
+            // Create TreeView control
+            TreeView treeView = new TreeView
+            {
+                Dock = DockStyle.Fill,
+                Font = new Font("Consolas", 9.5F),
+                BackColor = Color.FromArgb(248, 249, 251),
+                BorderStyle = BorderStyle.None,
+                Indent = 20
+            };
+
+            // Create panel for TreeView
+            Panel treePanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                Padding = new Padding(16),
+                BackColor = Color.White
+            };
+
+            // Create header label
+            Label headerLabel = new Label
+            {
+                Text = "Parse Tree Structure",
+                Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(33, 37, 41),
+                AutoSize = true,
+                Location = new Point(16, 16),
+                Dock = DockStyle.Top,
+                Padding = new Padding(0, 0, 0, 16)
+            };
+
+            // Build the tree
+            TreeNode treeRoot = Parser.PrintParseTree(parseTree);
+            if (treeRoot != null)
+            {
+                treeView.Nodes.Add(treeRoot);
+                treeView.ExpandAll();
             }
 
-            statusLabel.Text = $"{tabName}: {scanner.Tokens.Count} token(s), {Errors.Error_List.Count} error(s).";
+            // Add controls to form
+            treePanel.Controls.Add(treeView);
+            treeForm.Controls.Add(treePanel);
+            treeForm.Controls.Add(headerLabel);
+
+            // Show the form
+            treeForm.ShowDialog(this);
         }
 
         private void AddNewTab()
