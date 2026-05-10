@@ -279,24 +279,7 @@ namespace Tiny_Compiler
         Node Datatype()
         {
             Node datatype = new Node("Datatype");
-
-            if (InputPointer < TokenStream.Count)
-            {
-                Token_Class currentType = TokenStream[InputPointer].token_type;
-
-                if (currentType == Token_Class.Int)
-                    datatype.Children.Add(match(Token_Class.Int));
-                else if (currentType == Token_Class.Float)
-                    datatype.Children.Add(match(Token_Class.Float));
-                else if (currentType == Token_Class.String)
-                    datatype.Children.Add(match(Token_Class.String));
-                else
-                {
-                    Errors.Error_List.Add("Parsing Error: Expected datatype (int, float, or string)\r\n");
-                    InputPointer++;
-                }
-            }
-
+            datatype.Children.Add(match(Token_Class.Int, Token_Class.Float, Token_Class.String));
             return datatype;
         }
 
@@ -515,6 +498,14 @@ namespace Tiny_Compiler
                     term.Children.Add(Equation());
                     term.Children.Add(match(Token_Class.RParanthesis));
                 }
+                else
+                {
+                    term.Children.Add(match(Token_Class.Number, Token_Class.Identifier, Token_Class.LParanthesis));
+                }
+            }
+            else
+            {
+                term.Children.Add(match(Token_Class.Number, Token_Class.Identifier, Token_Class.LParanthesis));
             }
 
             return term;
@@ -524,21 +515,8 @@ namespace Tiny_Compiler
         Node ArithmeticOperator()
         {
             Node arithmeticOperator = new Node("ArithmeticOperator");
-
-            if (InputPointer < TokenStream.Count)
-            {
-                Token_Class currentType = TokenStream[InputPointer].token_type;
-
-                if (currentType == Token_Class.PlusOp)
-                    arithmeticOperator.Children.Add(match(Token_Class.PlusOp));
-                else if (currentType == Token_Class.MinusOp)
-                    arithmeticOperator.Children.Add(match(Token_Class.MinusOp));
-                else if (currentType == Token_Class.MultiplyOp)
-                    arithmeticOperator.Children.Add(match(Token_Class.MultiplyOp));
-                else if (currentType == Token_Class.DivideOp)
-                    arithmeticOperator.Children.Add(match(Token_Class.DivideOp));
-            }
-
+            arithmeticOperator.Children.Add(match(Token_Class.PlusOp, Token_Class.MinusOp,
+                                                  Token_Class.MultiplyOp, Token_Class.DivideOp));
             return arithmeticOperator;
         }
 
@@ -575,21 +553,8 @@ namespace Tiny_Compiler
         Node ConditionOperator()
         {
             Node conditionOperator = new Node("ConditionOperator");
-
-            if (InputPointer < TokenStream.Count)
-            {
-                Token_Class currentType = TokenStream[InputPointer].token_type;
-
-                if (currentType == Token_Class.LessThanOp)
-                    conditionOperator.Children.Add(match(Token_Class.LessThanOp));
-                else if (currentType == Token_Class.GreaterThanOp)
-                    conditionOperator.Children.Add(match(Token_Class.GreaterThanOp));
-                else if (currentType == Token_Class.EqualOp)
-                    conditionOperator.Children.Add(match(Token_Class.EqualOp));
-                else if (currentType == Token_Class.NotEqualOp)
-                    conditionOperator.Children.Add(match(Token_Class.NotEqualOp));
-            }
-
+            conditionOperator.Children.Add(match(Token_Class.LessThanOp, Token_Class.GreaterThanOp,
+                                                 Token_Class.EqualOp, Token_Class.NotEqualOp));
             return conditionOperator;
         }
 
@@ -597,17 +562,7 @@ namespace Tiny_Compiler
         Node BooleanOperator()
         {
             Node booleanOperator = new Node("BooleanOperator");
-
-            if (InputPointer < TokenStream.Count)
-            {
-                Token_Class currentType = TokenStream[InputPointer].token_type;
-
-                if (currentType == Token_Class.AndOp)
-                    booleanOperator.Children.Add(match(Token_Class.AndOp));
-                else if (currentType == Token_Class.OrOp)
-                    booleanOperator.Children.Add(match(Token_Class.OrOp));
-            }
-
+            booleanOperator.Children.Add(match(Token_Class.AndOp, Token_Class.OrOp));
             return booleanOperator;
         }
 
@@ -658,7 +613,11 @@ namespace Tiny_Compiler
         Node ReturnStatement()
         {
             Node returnStatement = new Node("ReturnStatement");
-            returnStatement.Children.Add(match(Token_Class.Return));
+            Node returnToken = match(Token_Class.Return);
+            returnStatement.Children.Add(returnToken);
+            if (returnToken == null)
+                return returnStatement;
+
             returnStatement.Children.Add(Expression());
             returnStatement.Children.Add(match(Token_Class.Semicolon));
             return returnStatement;
@@ -682,45 +641,85 @@ namespace Tiny_Compiler
                    tokenType == Token_Class.End;
         }
 
-        bool ShouldKeepCurrentToken(Token_Class expectedToken, Token_Class actualToken)
+        bool ShouldKeepCurrentToken(Token_Class[] expectedTokens, Token_Class actualToken)
         {
-            return IsRecoverableMissingToken(expectedToken) &&
-                   IsStatementBoundary(actualToken);
+            if (IsSynchronizationToken(actualToken))
+            {
+                return true;
+            }
+
+            if (HasAnyExpectedToken(expectedTokens, Token_Class.LessThanOp, Token_Class.GreaterThanOp,
+                                    Token_Class.EqualOp, Token_Class.NotEqualOp))
+            {
+                return IsExpressionStart(actualToken) || actualToken == Token_Class.Then;
+            }
+
+            return false;
         }
 
-        bool IsRecoverableMissingToken(Token_Class tokenType)
+        bool IsSynchronizationToken(Token_Class tokenType)
         {
-            return tokenType == Token_Class.Semicolon ||
+            return IsStatementBoundary(tokenType) ||
+                   tokenType == Token_Class.Semicolon ||
+                   tokenType == Token_Class.Comma ||
+                   tokenType == Token_Class.RParanthesis ||
+                   tokenType == Token_Class.RBracket ||
                    tokenType == Token_Class.Then ||
-                   tokenType == Token_Class.End ||
-                   tokenType == Token_Class.Return ||
-                   tokenType == Token_Class.RBrace ||
-                   tokenType == Token_Class.Until ||
+                   tokenType == Token_Class.Main ||
                    tokenType == Token_Class.LBrace;
         }
 
+        bool HasAnyExpectedToken(Token_Class[] expectedTokens, params Token_Class[] tokens)
+        {
+            foreach (Token_Class expectedToken in expectedTokens)
+            {
+                foreach (Token_Class token in tokens)
+                {
+                    if (expectedToken == token)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        string ExpectedTokensToString(Token_Class[] expectedTokens)
+        {
+            if (expectedTokens.Length == 1)
+                return expectedTokens[0].ToString();
+
+            return string.Join(" or ", expectedTokens.Select(token => token.ToString()).ToArray());
+        }
+
         // Match function - verifies and consumes a token
-        public Node match(Token_Class ExpectedToken)
+        public Node match(params Token_Class[] ExpectedTokens)
         {
             if (reachedEndOfFile)
             {
                 return null;
             }
 
+            if (ExpectedTokens == null || ExpectedTokens.Length == 0)
+            {
+                return null;
+            }
+
+            string expectedTokensText = ExpectedTokensToString(ExpectedTokens);
+
             if (InputPointer < TokenStream.Count)
             {
-                if (ExpectedToken == TokenStream[InputPointer].token_type)
+                if (ExpectedTokens.Contains(TokenStream[InputPointer].token_type))
                 {
-                    Node newNode = new Node(ExpectedToken.ToString());
+                    Node newNode = new Node(TokenStream[InputPointer].token_type.ToString());
                     InputPointer++;
                     return newNode;
                 }
                 else
                 {
-                    Errors.Error_List.Add("Parsing Error: Expected " + ExpectedToken.ToString() +
+                    Errors.Error_List.Add("Parsing Error: Expected " + expectedTokensText +
                                           " but found " + TokenStream[InputPointer].token_type.ToString() +
                                           " ('" + TokenStream[InputPointer].lex + "')\r\n");
-                    if (!ShouldKeepCurrentToken(ExpectedToken, TokenStream[InputPointer].token_type))
+                    if (!ShouldKeepCurrentToken(ExpectedTokens, TokenStream[InputPointer].token_type))
                     {
                         InputPointer++;
                     }
@@ -729,7 +728,7 @@ namespace Tiny_Compiler
             }
             else
             {
-                Errors.Error_List.Add("Parsing Error: Expected " + ExpectedToken.ToString() +
+                Errors.Error_List.Add("Parsing Error: Expected " + expectedTokensText +
                                       " but reached end of file\r\n");
                 reachedEndOfFile = true;
                 return null;

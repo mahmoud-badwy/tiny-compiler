@@ -154,19 +154,14 @@ namespace Tiny
                         j++;
                     }
 
-                    bool isNumber = true;
                     bool hasDot = false;
                     bool invalid = false;
 
                     foreach (char ch in lex)
                     {
-                        if (char.IsLetter(ch))
+                        if (char.IsLetterOrDigit(ch))
                         {
-                            isNumber = false;
-                        }
-                        else if (char.IsDigit(ch))
-                        {
-                            // ok
+                            continue;
                         }
                         else if (ch == '.')
                         {
