@@ -181,9 +181,18 @@ namespace Tiny_Compiler
                    TokenStream[InputPointer].token_type != Token_Class.ElseIf &&
                    TokenStream[InputPointer].token_type != Token_Class.End)
             {
+                int previousInputPointer = InputPointer;
                 Node stmt = Statement();
                 if (stmt != null)
                     statements.Children.Add(stmt);
+
+                if (InputPointer == previousInputPointer)
+                {
+                    Errors.Error_List.Add("Parsing Error: Unexpected token " +
+                                          TokenStream[InputPointer].token_type.ToString() +
+                                          " ('" + TokenStream[InputPointer].lex + "')\r\n");
+                    InputPointer++;
+                }
             }
 
             return statements;
@@ -611,28 +620,36 @@ namespace Tiny_Compiler
             return functionCall;
         }
 
-        // Grammar Rule 39-40: Arguments → Identifier ArgumentList | ε
-        // ArgumentList → , Identifier ArgumentList | ε
+        // Grammar Rule 39-40: Arguments → Expression ArgumentList | ε
+        // ArgumentList → , Expression ArgumentList | ε
         Node Arguments()
         {
             Node arguments = new Node("Arguments");
 
             // Check if there are arguments (not empty)
             if (InputPointer < TokenStream.Count &&
-                TokenStream[InputPointer].token_type == Token_Class.Identifier)
+                IsExpressionStart(TokenStream[InputPointer].token_type))
             {
-                arguments.Children.Add(match(Token_Class.Identifier));
+                arguments.Children.Add(Expression());
 
                 // Handle additional arguments
                 while (InputPointer < TokenStream.Count &&
                        TokenStream[InputPointer].token_type == Token_Class.Comma)
                 {
                     arguments.Children.Add(match(Token_Class.Comma));
-                    arguments.Children.Add(match(Token_Class.Identifier));
+                    arguments.Children.Add(Expression());
                 }
             }
 
             return arguments;
+        }
+
+        bool IsExpressionStart(Token_Class tokenType)
+        {
+            return tokenType == Token_Class.StringValue ||
+                   tokenType == Token_Class.Number ||
+                   tokenType == Token_Class.Identifier ||
+                   tokenType == Token_Class.LParanthesis;
         }
 
         // Grammar Rule 41: ReturnStatement → return Expression ;
