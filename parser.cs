@@ -23,12 +23,14 @@ namespace Tiny_Compiler
     {
         int InputPointer = 0;
         List<Token> TokenStream;
+        bool reachedEndOfFile = false;
         public Node root;
 
         public Node StartParsing(List<Token> TokenStream)
         {
             this.InputPointer = 0;
             this.TokenStream = TokenStream;
+            this.reachedEndOfFile = false;
             root = new Node("Program");
             root.Children.Add(Program());
             return root;
@@ -42,7 +44,7 @@ namespace Tiny_Compiler
             program.Children.Add(MainFunction());
 
             // Check if we've consumed all tokens
-            if (InputPointer < TokenStream.Count)
+            if (InputPointer < TokenStream.Count && Errors.Error_List.Count == 0)
             {
                 Errors.Error_List.Add("Parsing Error: Unexpected tokens after program end\r\n");
             }
@@ -682,18 +684,29 @@ namespace Tiny_Compiler
 
         bool ShouldKeepCurrentToken(Token_Class expectedToken, Token_Class actualToken)
         {
-            if (expectedToken == Token_Class.Semicolon ||
-                expectedToken == Token_Class.Then)
-            {
-                return IsStatementBoundary(actualToken);
-            }
+            return IsRecoverableMissingToken(expectedToken) &&
+                   IsStatementBoundary(actualToken);
+        }
 
-            return false;
+        bool IsRecoverableMissingToken(Token_Class tokenType)
+        {
+            return tokenType == Token_Class.Semicolon ||
+                   tokenType == Token_Class.Then ||
+                   tokenType == Token_Class.End ||
+                   tokenType == Token_Class.Return ||
+                   tokenType == Token_Class.RBrace ||
+                   tokenType == Token_Class.Until ||
+                   tokenType == Token_Class.LBrace;
         }
 
         // Match function - verifies and consumes a token
         public Node match(Token_Class ExpectedToken)
         {
+            if (reachedEndOfFile)
+            {
+                return null;
+            }
+
             if (InputPointer < TokenStream.Count)
             {
                 if (ExpectedToken == TokenStream[InputPointer].token_type)
@@ -718,6 +731,7 @@ namespace Tiny_Compiler
             {
                 Errors.Error_List.Add("Parsing Error: Expected " + ExpectedToken.ToString() +
                                       " but reached end of file\r\n");
+                reachedEndOfFile = true;
                 return null;
             }
         }
