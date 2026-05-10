@@ -46,7 +46,7 @@ namespace Tiny_Compiler
             {
                 Errors.Error_List.Add("Parsing Error: Unexpected tokens after program end\r\n");
             }
-            else
+            else if (Errors.Error_List.Count == 0)
             {
                 MessageBox.Show("Parsing completed successfully!");
             }
@@ -662,6 +662,35 @@ namespace Tiny_Compiler
             return returnStatement;
         }
 
+        bool IsStatementBoundary(Token_Class tokenType)
+        {
+            return tokenType == Token_Class.Int ||
+                   tokenType == Token_Class.Float ||
+                   tokenType == Token_Class.String ||
+                   tokenType == Token_Class.Identifier ||
+                   tokenType == Token_Class.Write ||
+                   tokenType == Token_Class.Read ||
+                   tokenType == Token_Class.If ||
+                   tokenType == Token_Class.Repeat ||
+                   tokenType == Token_Class.Return ||
+                   tokenType == Token_Class.RBrace ||
+                   tokenType == Token_Class.Until ||
+                   tokenType == Token_Class.Else ||
+                   tokenType == Token_Class.ElseIf ||
+                   tokenType == Token_Class.End;
+        }
+
+        bool ShouldKeepCurrentToken(Token_Class expectedToken, Token_Class actualToken)
+        {
+            if (expectedToken == Token_Class.Semicolon ||
+                expectedToken == Token_Class.Then)
+            {
+                return IsStatementBoundary(actualToken);
+            }
+
+            return false;
+        }
+
         // Match function - verifies and consumes a token
         public Node match(Token_Class ExpectedToken)
         {
@@ -678,7 +707,10 @@ namespace Tiny_Compiler
                     Errors.Error_List.Add("Parsing Error: Expected " + ExpectedToken.ToString() +
                                           " but found " + TokenStream[InputPointer].token_type.ToString() +
                                           " ('" + TokenStream[InputPointer].lex + "')\r\n");
-                    InputPointer++;
+                    if (!ShouldKeepCurrentToken(ExpectedToken, TokenStream[InputPointer].token_type))
+                    {
+                        InputPointer++;
+                    }
                     return null;
                 }
             }
