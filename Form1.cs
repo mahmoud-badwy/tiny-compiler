@@ -172,10 +172,10 @@ namespace Tiny
                     textBox2.AppendText("No errors found.\r\n");
                     textBox2.AppendText("\r\nParse tree generated successfully.");
                     statusLabel.Text = $"{tabName}: Compilation successful!";
-                }
 
-                // Display parse tree in a message box (since we don't have TreeView in current GUI)
-                ShowParseTree(parseTree);
+                    // Display parse tree only after a successful parse.
+                    ShowParseTree(parseTree);
+                }
             }
             catch (Exception ex)
             {
